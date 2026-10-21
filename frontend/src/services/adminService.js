@@ -5,9 +5,11 @@ import * as SecureStore from "expo-secure-store";
 // 1. ADMIN AUTHENTICATION
 // ==========================================
 
-export const adminLogin = async (email, password) => {
+export const adminLogin = async (identifier, password) => {
+    const cleanId = String(identifier || "").trim();
     const response = await api.post("/auth/admin/login", {
-        email: email.trim().toLowerCase(),
+        email: cleanId.toLowerCase(),
+        identifier: cleanId,
         password: password,
     });
 

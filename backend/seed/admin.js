@@ -11,37 +11,38 @@ const createAdmin = async () => {
     try {
         await connectDB();
 
-        const email = "admin@company.com";
+        const adminAccounts = [
+            {
+                email: "admin@company.com",
+                employeeId: "ADMIN001",
+                name: "System Admin",
+            },
+            {
+                email: "admin@aryansbuildcon.com",
+                employeeId: "ADMIN002",
+                name: "Aryans Buildcon Admin",
+            },
+        ];
 
-        const existingAdmin = await User.findOne({
-            email,
-        });
+        const hashedPassword = await bcrypt.hash("Admin@123", 12);
 
-        if (existingAdmin) {
-            console.log("Admin already exists");
-            process.exit(0);
+        for (const account of adminAccounts) {
+            const existing = await User.findOne({ email: account.email });
+            if (!existing) {
+                await User.create({
+                    ...account,
+                    password: hashedPassword,
+                    role: "admin",
+                    status: "active",
+                });
+                console.log(`Admin created: ${account.email}`);
+            } else {
+                console.log(`Admin already exists: ${account.email}`);
+            }
         }
 
-        const hashedPassword = await bcrypt.hash(
-            "Admin@123",
-            12
-        );
-
-        await User.create({
-            employeeId: "ADMIN001",
-            name: "System Admin",
-            email,
-            password: hashedPassword,
-            role: "admin",
-            status: "active",
-        });
-
-        console.log("Admin created successfully");
-        console.log("Email:", email);
-        console.log("Password: Admin@123");
-
+        console.log("Default Password: Admin@123");
         await mongoose.connection.close();
-
         process.exit(0);
     } catch (error) {
         console.error("Admin creation failed:", error);

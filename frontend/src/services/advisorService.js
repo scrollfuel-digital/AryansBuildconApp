@@ -2,9 +2,11 @@
 import api from "./api";
 import * as SecureStore from "expo-secure-store";
 
-export const advisorLogin = async (email, password) => {
-    const response = await api.post("/auth/advisor/login", {
-        email: email.trim().toLowerCase(),
+export const advisorLogin = async (identifier, password) => {
+    const cleanId = String(identifier || "").trim();
+    const response = await api.post("/auth/login", {
+        email: cleanId.toLowerCase(),
+        identifier: cleanId,
         password: password,
     });
 
@@ -14,11 +16,14 @@ export const advisorLogin = async (email, password) => {
         throw new Error(result.message || "Login failed");
     }
 
+    const role = result.user?.role || "advisor";
     await SecureStore.setItemAsync("authToken", result.token);
-    await SecureStore.setItemAsync("userRole", "advisor");
+    await SecureStore.setItemAsync("userRole", role);
 
     return result;
 };
+
+export const loginUser = advisorLogin;
 
 // Register new advisor account
 export const advisorRegister = async (advisorData) => {

@@ -101,7 +101,7 @@ export default function EmployeeFieldReportScreen({
               </Text>
             </Pressable>
 
-            {/* LOGIN */}
+            {/* SIGN IN */}
 
             <Pressable
               style={({ pressed }) => [
@@ -111,7 +111,7 @@ export default function EmployeeFieldReportScreen({
               onPress={() => navigation.navigate("Login")}
             >
               <Text style={styles.loginIcon}>
-                ♙
+                👔
               </Text>
 
               <Text style={styles.loginText}>
@@ -365,4 +365,5 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
+
 });

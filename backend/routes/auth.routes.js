@@ -3,6 +3,7 @@ import express from "express";
 import {
   advisorLogin,
   adminLogin,
+  universalLogin,
   getMe,
   logout,
   advisorRegister,
@@ -18,7 +19,8 @@ import protect from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Existing authentication routes
+// Universal and role-specific authentication routes
+router.post("/login", universalLogin);
 router.post("/advisor/login", advisorLogin);
 router.post("/admin/login", adminLogin);
 router.post("/advisor/register", advisorRegister);

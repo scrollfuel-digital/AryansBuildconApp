@@ -5,6 +5,7 @@ import WelcomeScreen from "../screens/auth/WelcomeScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
 import VerifyOTPScreen from "../screens/auth/VerifyOTPScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
+import AdminLoginScreen from "../screens/auth/AdminLoginScreen";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,15 @@ export default function AuthNavigator({ onLogin }) {
             <Stack.Screen name="Login">
                 {(props) => (
                     <LoginScreen
+                        {...props}
+                        onLogin={onLogin}
+                    />
+                )}
+            </Stack.Screen>
+
+            <Stack.Screen name="AdminLogin">
+                {(props) => (
+                    <AdminLoginScreen
                         {...props}
                         onLogin={onLogin}
                     />
