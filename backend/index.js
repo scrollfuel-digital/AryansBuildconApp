@@ -46,6 +46,7 @@ const startServer = async () => {
             console.log(`Server is running on port ${port}`);
             console.log(`Local URL: http://localhost:${port}`);
             console.log(`Mobile API URL: http://10.237.180.98:${port}/api`);
+            console.log(`Production API URL: https://aryansbuildconapp.onrender.com/api`)
         });
     } catch (error) {
         console.error("Server startup failed:", error.message);
