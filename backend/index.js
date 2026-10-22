@@ -37,6 +37,16 @@ app.use("/api/profile", profileRoutes);
 
 const port = process.env.PORT || 8000;
 
+
+// Production API health check
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Aryans Buildcon API is running",
+        environment: process.env.NODE_ENV || "production",
+        timestamp: new Date().toISOString(),
+    });
+});
 // Start server only after MongoDB connection
 const startServer = async () => {
     try {
