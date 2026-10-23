@@ -22,9 +22,9 @@ export const sendVerificationEmail = async (email, otp) => {
                 user,
                 pass,
             },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
+            connectionTimeout: 4000,
+            greetingTimeout: 4000,
+            socketTimeout: 5000,
         }
         : {
             host: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -34,9 +34,9 @@ export const sendVerificationEmail = async (email, otp) => {
                 user,
                 pass,
             },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
+            connectionTimeout: 4000,
+            greetingTimeout: 4000,
+            socketTimeout: 5000,
         };
 
     const transporter = nodemailer.createTransport(transportOptions);

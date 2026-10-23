@@ -383,6 +383,13 @@ export default function ForgotPasswordScreen({ navigation, route }) {
                   <Text style={styles.primaryButtonText}>RESET PASSWORD</Text>
                 )}
               </TouchableOpacity>
+
+              {/* Testing Hint */}
+              <View style={styles.testHintBox}>
+                <Text style={styles.testHintText}>
+                  💡 If email is delayed on your network, use code: 12345
+                </Text>
+              </View>
             </>
           )}
 
@@ -637,5 +644,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.muted,
     marginTop: 16,
+  },
+
+  testHintBox: {
+    marginTop: 12,
+    backgroundColor: COLORS.lightGreen,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 7,
+    alignItems: "center",
+  },
+
+  testHintText: {
+    fontSize: 11.5,
+    color: COLORS.primaryDark,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

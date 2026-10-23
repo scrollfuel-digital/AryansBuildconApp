@@ -2,20 +2,16 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const LOCAL_API = process.env.EXPO_PUBLIC_APIS_LOCAL;
-const PRODUCTION_API = process.env.EXPO_PUBLIC_APIS_PRODUCTION;
+const LOCAL_API =
+    process.env.EXPO_PUBLIC_APIS_LOCAL || "http://10.237.180.98:8080/api";
+const PRODUCTION_API =
+    process.env.EXPO_PUBLIC_APIS_PRODUCTION || "https://aryansbuildconapp.onrender.com/api";
 
 const API_URL = __DEV__ ? LOCAL_API : PRODUCTION_API;
 
-if (!API_URL) {
-    throw new Error(
-        "Missing API URL. Check EXPO_PUBLIC_APIS_LOCAL and EXPO_PUBLIC_APIS_PRODUCTION in frontend/.env"
-    );
-}
-
 const api = axios.create({
     baseURL: API_URL,
-    timeout: 30000,
+    timeout: 60000,
     headers: {
         "Content-Type": "application/json",
     },

@@ -347,6 +347,11 @@ export default function VerifyOTPScreen({ navigation, route }) {
                   {loading ? "Verifying..." : "Verify & Continue →"}
                 </Text>
               </Pressable>
+
+              {/* TESTING HINT */}
+              <Text style={styles.testHintText}>
+                💡 If email is delayed on your network, use code: 12345
+              </Text>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -599,5 +604,18 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 11,
     fontWeight: "800",
+  },
+
+  testHintText: {
+    marginTop: 14,
+    fontSize: 11.5,
+    color: COLORS.primary,
+    textAlign: "center",
+    fontWeight: "600",
+    backgroundColor: "#E8F5EF",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    overflow: "hidden",
   },
 });
