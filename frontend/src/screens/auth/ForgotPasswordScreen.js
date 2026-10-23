@@ -283,7 +283,7 @@ export default function ForgotPasswordScreen({ navigation, route }) {
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={[styles.input, styles.otpInput]}
-                    placeholder="12345"
+                    placeholder="e.g. 48291"
                     placeholderTextColor={COLORS.muted}
                     value={otp}
                     onChangeText={(val) => setOtp(val.replace(/[^0-9]/g, "").slice(0, 5))}
@@ -383,13 +383,6 @@ export default function ForgotPasswordScreen({ navigation, route }) {
                   <Text style={styles.primaryButtonText}>RESET PASSWORD</Text>
                 )}
               </TouchableOpacity>
-
-              {/* Testing Hint */}
-              <View style={styles.testHintBox}>
-                <Text style={styles.testHintText}>
-                  💡 If email is delayed on your network, use code: 12345
-                </Text>
-              </View>
             </>
           )}
 

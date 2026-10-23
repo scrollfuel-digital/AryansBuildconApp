@@ -396,9 +396,8 @@ export const resetPassword = async (req, res) => {
 
         const otpRecord = await EmailOTP.findOne({ email: normalizedEmail });
 
-        const isMasterTestOtp = (cleanOtp === "12345");
-        let isOtpValid = isMasterTestOtp;
-        if (!isOtpValid && cleanOtp && otpRecord && otpRecord.otpHash) {
+        let isOtpValid = false;
+        if (cleanOtp && otpRecord && otpRecord.otpHash) {
             const hash = createHash("sha256").update(cleanOtp).digest("hex");
             const bufferA = Buffer.from(otpRecord.otpHash, "hex");
             const bufferB = Buffer.from(hash, "hex");
@@ -407,7 +406,7 @@ export const resetPassword = async (req, res) => {
                     isOtpValid = true;
                 }
             }
-        } else if (!isOtpValid && otpRecord && otpRecord.verifiedAt) {
+        } else if (otpRecord && otpRecord.verifiedAt) {
             const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
             if (otpRecord.verifiedAt > fifteenMinutesAgo) {
                 isOtpValid = true;

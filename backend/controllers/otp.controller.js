@@ -116,6 +116,10 @@ export const sendOTP = async (req, res) => {
         const otp = String(randomInt(10000, 100000));
 
         // 1. Save the OTP record into MongoDB FIRST so it is guaranteed to exist
+        // Deliver the verification email to the user
+        await sendVerificationEmail(email, otp);
+        console.log(`[OTP] Successfully delivered email verification code to ${email}`);
+
         const otpData = {
             otpHash: hashOTP(otp),
             expiresAt: new Date(now + OTP_EXPIRY_MS),
@@ -130,18 +134,6 @@ export const sendOTP = async (req, res) => {
             { upsert: true, new: true, runValidators: true }
         );
 
-        // 2. Deliver email with graceful fallback if cloud SMTP port is blocked by host
-        let emailSent = false;
-        try {
-            await sendVerificationEmail(email, otp);
-            emailSent = true;
-            console.log(`[OTP] Successfully delivered email verification code to ${email}`);
-        } catch (mailError) {
-            console.warn(
-                `[OTP Notice] Cloud SMTP delivery was blocked or timed out (${mailError.message}). Fallback code (12345) is active for testing.`
-            );
-        }
-
         const emailParts = email.split("@");
         const uName = emailParts[0];
         const maskedEmail =
@@ -151,9 +143,7 @@ export const sendOTP = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: emailSent
-                ? `Verification code sent successfully to ${maskedEmail}`
-                : `Verification code generated for ${maskedEmail}`,
+            message: `Verification code sent successfully to ${maskedEmail}`,
             email,
             maskedEmail,
             expiresIn: 300,
@@ -163,7 +153,10 @@ export const sendOTP = async (req, res) => {
         console.error("Send OTP error:", error.message);
         return res.status(500).json({
             success: false,
-            message: error.message || "Unable to generate verification code.",
+            message:
+                error.code === "ESOCKET" || error.code === "ETIMEDOUT"
+                    ? "Email service timed out. Please try again in a few moments."
+                    : error.message || "Unable to send the verification code.",
         });
     }
 };
@@ -191,34 +184,7 @@ export const verifyOTP = async (req, res) => {
             });
         }
 
-        const isMasterTestOtp = (otp === "12345");
-
-        let record = await EmailOTP.findOne({ email });
-
-        // If master test code is used, ensure record exists and mark verified
-        if (isMasterTestOtp) {
-            if (!record) {
-                record = await EmailOTP.create({
-                    email,
-                    otpHash: hashOTP("12345"),
-                    expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
-                    attempts: 0,
-                    lastSentAt: new Date(),
-                    verifiedAt: new Date(),
-                });
-            } else {
-                await EmailOTP.updateOne(
-                    { _id: record._id },
-                    { $set: { verifiedAt: new Date() } }
-                );
-            }
-
-            return res.status(200).json({
-                success: true,
-                message: "Email verified successfully.",
-                data: { email, emailVerified: true },
-            });
-        }
+        const record = await EmailOTP.findOne({ email });
 
         if (!record) {
             return res.status(400).json({
