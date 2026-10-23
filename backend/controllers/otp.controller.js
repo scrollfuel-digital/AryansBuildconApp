@@ -142,7 +142,10 @@ export const sendOTP = async (req, res) => {
         console.error("Error response:", error?.response);
         return res.status(500).json({
             success: false,
-            message: "Unable to send the verification code.",
+            message:
+                error.code === "ESOCKET" || error.code === "ETIMEDOUT"
+                    ? "Email service timed out. Please try again in a few moments."
+                    : error.message || "Unable to send the verification code.",
         });
     }
 };

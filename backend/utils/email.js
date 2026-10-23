@@ -11,19 +11,37 @@ export const sendVerificationEmail = async (email, otp) => {
         );
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: false,
-        auth: {
-            user,
-            pass,
-        },
-        requireTLS: true,
-    });
+    const isGmail =
+        (process.env.SMTP_HOST || "").toLowerCase().includes("gmail") ||
+        user.toLowerCase().includes("gmail");
+
+    const transportOptions = isGmail
+        ? {
+            service: "gmail",
+            auth: {
+                user,
+                pass,
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+        }
+        : {
+            host: process.env.SMTP_HOST || "smtp.gmail.com",
+            port: Number(process.env.SMTP_PORT || 465),
+            secure: process.env.SMTP_SECURE === "true" || Number(process.env.SMTP_PORT) === 465,
+            auth: {
+                user,
+                pass,
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+        };
+
+    const transporter = nodemailer.createTransport(transportOptions);
 
     try {
-        await transporter.verify();
 
         const info = await transporter.sendMail({
             from: process.env.SMTP_FROM || user,
