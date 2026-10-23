@@ -179,7 +179,7 @@ export default function VerifyOTPScreen({ navigation, route }) {
       setResending(true);
       setError("");
 
-      const response = await resendOTP(email);
+      const response = await resendOTP(email, "signup", mobile);
 
       if (response?.success) {
         setOtp("");
@@ -249,13 +249,16 @@ export default function VerifyOTPScreen({ navigation, route }) {
                 Enter the verification code sent to
               </Text>
 
-              <View style={styles.emailPill}>
+              <Pressable
+                style={styles.emailPill}
+                onPress={() => navigation.goBack()}
+              >
                 <Text style={styles.emailText}>
                   {email || "Email not available"}
                 </Text>
 
                 <Text style={styles.editIcon}>✎</Text>
-              </View>
+              </Pressable>
 
               {/* OTP INPUT BOXES */}
 
@@ -348,10 +351,7 @@ export default function VerifyOTPScreen({ navigation, route }) {
                 </Text>
               </Pressable>
 
-              {/* TESTING HINT */}
-              <Text style={styles.testHintText}>
-                💡 If email is delayed on your network, use code: 12345
-              </Text>
+            
             </View>
           </View>
         </TouchableWithoutFeedback>

@@ -1,11 +1,14 @@
 import api from "./api";
 
-export const sendOTP = async (email, type = "signup") => {
-    const response = await api.post("/auth/otp/send", {
+export const sendOTP = async (email, type = "signup", mobile = "") => {
+    const payload = {
         email: email.trim().toLowerCase(),
         type,
-    });
-
+    };
+    if (mobile) {
+        payload.mobile = String(mobile).trim();
+    }
+    const response = await api.post("/auth/otp/send", payload);
     return response.data;
 };
 
@@ -18,12 +21,15 @@ export const verifyOTP = async (email, otp) => {
     return response.data;
 };
 
-export const resendOTP = async (email, type = "reset_password") => {
-    const response = await api.post("/auth/otp/resend", {
+export const resendOTP = async (email, type = "signup", mobile = "") => {
+    const payload = {
         email: email.trim().toLowerCase(),
         type,
-    });
-
+    };
+    if (mobile) {
+        payload.mobile = String(mobile).trim();
+    }
+    const response = await api.post("/auth/otp/resend", payload);
     return response.data;
 };
 

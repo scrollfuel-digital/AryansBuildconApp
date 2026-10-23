@@ -51,12 +51,25 @@ export const sendOTP = async (req, res) => {
 
         // If OTP requested for signup, ensure user does not already exist
         if (req.body.type === "signup" || req.body.purpose === "signup") {
-            const existingUser = await User.findOne({ email });
+            const cleanMobile = req.body.mobile ? String(req.body.mobile).trim() : null;
+            const queries = [{ email }];
+            if (cleanMobile) {
+                queries.push({ mobile: cleanMobile });
+            }
+            const existingUser = await User.findOne({ $or: queries });
             if (existingUser) {
-                return res.status(409).json({
-                    success: false,
-                    message: "An account with this email already exists. Please log in.",
-                });
+                if (existingUser.email === email) {
+                    return res.status(409).json({
+                        success: false,
+                        message: "An account with this email already exists. Please log in.",
+                    });
+                }
+                if (cleanMobile && existingUser.mobile === cleanMobile) {
+                    return res.status(409).json({
+                        success: false,
+                        message: `Mobile number ${cleanMobile} is already registered to another account. Please use a different mobile number or log in.`,
+                    });
+                }
             }
         }
 

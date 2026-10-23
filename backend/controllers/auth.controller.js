@@ -234,6 +234,26 @@ export const advisorRegister = async (req, res) => {
         const existingUser = await User.findOne({ $or: existingQuery });
 
         if (existingUser) {
+            const emailMatches = existingUser.email === normalizedEmail;
+            const mobileMatches = cleanMobile && existingUser.mobile === cleanMobile;
+
+            if (emailMatches && mobileMatches) {
+                return res.status(409).json({
+                    success: false,
+                    message: "An account with this email and mobile number is already registered. Please log in.",
+                });
+            } else if (emailMatches) {
+                return res.status(409).json({
+                    success: false,
+                    message: "An account with this email is already registered. Please log in.",
+                });
+            } else if (mobileMatches) {
+                return res.status(409).json({
+                    success: false,
+                    message: `Mobile number ${cleanMobile} is already registered to another account. Please use a different mobile number.`,
+                });
+            }
+
             return res.status(409).json({
                 success: false,
                 message: "Email or mobile number is already registered. Please log in.",

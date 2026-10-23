@@ -166,7 +166,7 @@ export default function SignupScreen({ navigation }) {
     }
 
     try {
-      const response = await sendOTP(normalizedEmail, "signup");
+      const response = await sendOTP(normalizedEmail, "signup", mobile.trim());
 
       if (response?.success) {
         navigation.navigate("VerifyOTP", {
