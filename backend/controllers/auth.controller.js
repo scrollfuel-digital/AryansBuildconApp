@@ -1,4 +1,5 @@
 
+import { createHash, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import EmailOTP from "../models/otp.model.js";
@@ -310,6 +311,112 @@ export const advisorRegister = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Server error while registering account.",
+        });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, identifier, otp, password } = req.body;
+        let normalizedEmail = String(email || identifier || "").trim().toLowerCase();
+        const cleanPassword = String(password || "").trim();
+        const cleanOtp = String(otp || "").trim();
+
+        if (!normalizedEmail || !cleanPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Email/ID and new password are required.",
+            });
+        }
+
+        if (cleanPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long.",
+            });
+        }
+
+        // If not in email format, check if it's an employeeId
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+            const userById = await User.findOne({
+                $or: [
+                    { employeeId: normalizedEmail },
+                    { employeeId: normalizedEmail.toUpperCase() },
+                    { mobile: normalizedEmail },
+                ],
+            });
+            if (userById && userById.email) {
+                normalizedEmail = userById.email.toLowerCase();
+            }
+        }
+
+        // Verify user exists (or hardcoded admin)
+        let user = await User.findOne({ email: normalizedEmail }).select("+password");
+        if (!user) {
+            const hardcodedAdmin = HARDCODED_ADMINS.find(
+                (a) => a.email.toLowerCase() === normalizedEmail
+            );
+            if (hardcodedAdmin) {
+                const defaultHash = await bcrypt.hash("Admin@123", 12);
+                user = await User.create({
+                    employeeId: hardcodedAdmin.employeeId,
+                    name: hardcodedAdmin.name,
+                    email: hardcodedAdmin.email,
+                    password: defaultHash,
+                    role: "admin",
+                    status: "active",
+                });
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    message: "No registered account found with this email or employee ID.",
+                });
+            }
+        }
+
+        const otpRecord = await EmailOTP.findOne({ email: normalizedEmail });
+
+        let isOtpValid = false;
+        if (cleanOtp && otpRecord && otpRecord.otpHash) {
+            const hash = createHash("sha256").update(cleanOtp).digest("hex");
+            const bufferA = Buffer.from(otpRecord.otpHash, "hex");
+            const bufferB = Buffer.from(hash, "hex");
+            if (bufferA.length === bufferB.length && timingSafeEqual(bufferA, bufferB)) {
+                if (otpRecord.expiresAt && otpRecord.expiresAt.getTime() > Date.now()) {
+                    isOtpValid = true;
+                }
+            }
+        } else if (otpRecord && otpRecord.verifiedAt) {
+            const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+            if (otpRecord.verifiedAt > fifteenMinutesAgo) {
+                isOtpValid = true;
+            }
+        }
+
+        if (!isOtpValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired verification code. Please request a new code.",
+            });
+        }
+
+        // Hash new password and update user in MongoDB
+        const hashedPassword = await bcrypt.hash(cleanPassword, 12);
+        user.password = hashedPassword;
+        await user.save();
+
+        // Clear OTP record after successful reset
+        await EmailOTP.deleteOne({ email: normalizedEmail });
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully. You can now sign in with your new password.",
+        });
+    } catch (error) {
+        console.error("Reset password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error occurred while resetting password.",
         });
     }
 };

@@ -7,6 +7,7 @@ import {
   getMe,
   logout,
   advisorRegister,
+  resetPassword,
 } from "../controllers/auth.controller.js";
 
 import {
@@ -25,6 +26,8 @@ router.post("/advisor/login", advisorLogin);
 router.post("/admin/login", adminLogin);
 router.post("/advisor/register", advisorRegister);
 router.post("/register", advisorRegister);
+router.post("/reset-password", resetPassword);
+router.post("/forgot-password", resetPassword);
 router.get("/me", protect, getMe);
 router.post("/logout", protect, logout);
 

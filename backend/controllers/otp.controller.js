@@ -28,13 +28,25 @@ const safeCompare = (a, b) => {
 // POST /api/auth/otp/send
 export const sendOTP = async (req, res) => {
     try {
-        const email = normalizeEmail(req.body.email);
+        let email = normalizeEmail(req.body.email || req.body.identifier);
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid email address.",
+            // Check if it's an employee ID or mobile number
+            const userById = await User.findOne({
+                $or: [
+                    { employeeId: req.body.email || req.body.identifier },
+                    { employeeId: String(req.body.email || req.body.identifier || "").toUpperCase() },
+                    { mobile: req.body.email || req.body.identifier },
+                ],
             });
+            if (userById && userById.email) {
+                email = userById.email.toLowerCase();
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please provide a valid email address or registered employee ID.",
+                });
+            }
         }
 
         // If OTP requested for signup, ensure user does not already exist
@@ -45,6 +57,28 @@ export const sendOTP = async (req, res) => {
                     success: false,
                     message: "An account with this email already exists. Please log in.",
                 });
+            }
+        }
+
+        // If OTP requested for password reset, ensure user exists
+        if (
+            req.body.type === "reset_password" ||
+            req.body.type === "forgot_password" ||
+            req.body.purpose === "reset_password"
+        ) {
+            const isHardcoded =
+                email === "admin@aryansbuildcon.com" ||
+                email === "admin@company.com" ||
+                email === "admin";
+
+            if (!isHardcoded) {
+                const existingUser = await User.findOne({ email });
+                if (!existingUser) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "No registered account found with this email or employee ID.",
+                    });
+                }
             }
         }
 
@@ -85,9 +119,18 @@ export const sendOTP = async (req, res) => {
             { upsert: true, new: true, runValidators: true }
         );
 
+        const emailParts = email.split("@");
+        const uName = emailParts[0];
+        const maskedEmail =
+            uName.length > 2
+                ? `${uName[0]}***${uName[uName.length - 1]}@${emailParts[1]}`
+                : `${uName[0]}***@${emailParts[1]}`;
+
         return res.status(200).json({
             success: true,
-            message: "Verification code sent successfully.",
+            message: `Verification code sent successfully to ${maskedEmail}`,
+            email,
+            maskedEmail,
             expiresIn: 300,
             resendAfter: 60,
         });
