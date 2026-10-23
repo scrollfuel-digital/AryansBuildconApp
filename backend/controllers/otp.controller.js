@@ -118,8 +118,7 @@ export const sendOTP = async (req, res) => {
         // 1. Save the OTP record into MongoDB FIRST so it is guaranteed to exist
         // Deliver the verification email to the user
         await sendVerificationEmail(email, otp);
-        console.log(`[OTP] Successfully delivered email verification code to ${email}`);
-
+       
         const otpData = {
             otpHash: hashOTP(otp),
             expiresAt: new Date(now + OTP_EXPIRY_MS),
