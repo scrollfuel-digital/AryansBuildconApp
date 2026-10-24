@@ -1,369 +1,426 @@
 
-import React, { useState } from "react";
-
+import React from "react";
 import {
   View,
   Text,
-  TextInput,
+  Image,
   Pressable,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   StatusBar,
   ImageBackground,
+  useWindowDimensions,
 } from "react-native";
-
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import COLORS from "../../constants/colors";
 
-export default function EmployeeFieldReportScreen({
-  navigation,
-}) {
+export default function WelcomeScreen({ navigation }) {
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const isSmallPhone = height < 700 || width < 360;
+  const isTablet = width >= 768;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#17211D"
+        backgroundColor="transparent"
+        translucent
       />
 
       <ImageBackground
         source={require("../../../assets/site.png")}
-        style={styles.background}
+        style={styles.backgroundImage}
         resizeMode="cover"
       >
-        {/* ================= DARK OVERLAY ================= */}
-
+        {/* High-Contrast Dark Gradient/Overlay for 100% Text Readability */}
         <View style={styles.overlay} />
 
-        {/* ================= CONTENT ================= */}
-
-        <View style={styles.content}>
-
-          {/* ================= LOGO ================= */}
-
-          <View style={styles.logoContainer}>
-            <ImageBackground
-              source={require("../../../assets/authentication/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: Math.max(insets.top, 24) + (isSmallPhone ? 8 : 18),
+              paddingBottom: Math.max(insets.bottom, 20) + (isSmallPhone ? 12 : 22),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          overScrollMode="never"
+        >
+          {/* ================= BRAND LOGO ================= */}
+          <View style={styles.topSection}>
+            <View
+              style={[
+                styles.brandCard,
+                isSmallPhone && styles.brandCardSmall,
+              ]}
+            >
+              <Image
+                source={require("../../../assets/authentication/logo.png")}
+                style={[
+                  styles.logoImage,
+                  isSmallPhone && styles.logoImageSmall,
+                ]}
+                resizeMode="contain"
+              />
+            </View>
           </View>
 
-          {/* ================= HERO ================= */}
-
-          <View style={styles.hero}>
-
-            <View style={styles.badge}>
+          {/* ================= HERO CONTENT ================= */}
+          <View style={styles.heroSection}>
+            {/* Status Pill Badge */}
+            <View style={styles.badgePill}>
               <View style={styles.badgeDot} />
-
-              <Text style={styles.badgeText}>
-                FIELD OPERATIONS SUITE
-              </Text>
+              <Text style={styles.badgeText}>FIELD OPERATIONS SUITE</Text>
             </View>
 
-            <Text style={styles.title}>
-              Site Visit Manager
+            {/* Main Title - Responsive & Highly Legible */}
+            <Text
+              style={[
+                styles.title,
+                { fontSize: isSmallPhone ? 24 : isTablet ? 34 : 27 },
+              ]}
+              maxFontSizeMultiplier={1.2}
+            >
+              Site Visit & Field Manager
             </Text>
 
-            <Text style={styles.description}>
-              Manage your site visits, field activities
-              {"\n"}
-              and daily reports with ease.
+            {/* Subtitle / Description */}
+            <Text
+              style={[
+                styles.description,
+                { fontSize: isSmallPhone ? 13 : 14.5 },
+              ]}
+              maxFontSizeMultiplier={1.2}
+            >
+              Manage your site visits, record live GPS locations, and submit daily field reports with ease.
             </Text>
 
+            {/* Quick Highlights Card */}
+            <View style={styles.featuresCard}>
+              <View style={styles.featureItem}>
+                <View style={styles.featureIconBox}>
+                  <Text style={styles.featureIcon}>📍</Text>
+                </View>
+                <View style={styles.featureTextBox}>
+                  <Text style={styles.featureTitle}>Live GPS Verification</Text>
+                  <Text style={styles.featureDesc}>Accurate location capture during site visits</Text>
+                </View>
+              </View>
+
+              <View style={styles.featureDivider} />
+
+              <View style={styles.featureItem}>
+                <View style={styles.featureIconBox}>
+                  <Text style={styles.featureIcon}>📸</Text>
+                </View>
+                <View style={styles.featureTextBox}>
+                  <Text style={styles.featureTitle}>Instant Cloud Photos</Text>
+                  <Text style={styles.featureDesc}>Secure cloud photo documentation</Text>
+                </View>
+              </View>
+
+              <View style={styles.featureDivider} />
+
+              <View style={styles.featureItem}>
+                <View style={styles.featureIconBox}>
+                  <Text style={styles.featureIcon}>📊</Text>
+                </View>
+                <View style={styles.featureTextBox}>
+                  <Text style={styles.featureTitle}>Lead & Report Tracking</Text>
+                  <Text style={styles.featureDesc}>Real-time activity sync with admin dashboard</Text>
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* ================= SPACER ================= */}
-
-          <View style={styles.spacer} />
-
-          {/* ================= BUTTONS ================= */}
-
-          <View style={styles.buttonsContainer}>
-
-            {/* GET STARTED */}
-
+          {/* ================= BUTTONS & FOOTER ================= */}
+          <View style={styles.bottomSection}>
+            {/* Get Started Button */}
             <Pressable
               style={({ pressed }) => [
-                styles.getStartedButton,
+                styles.primaryButton,
                 pressed && styles.buttonPressed,
               ]}
               onPress={() => navigation.navigate("Signup")}
+              accessibilityRole="button"
+              accessibilityLabel="Get Started with registration"
             >
-              <Text style={styles.getStartedText}>
-                Get Started
-              </Text>
-
-              <Text style={styles.arrow}>
-                →
-              </Text>
+              <Text style={styles.primaryButtonText}>Get Started</Text>
+              <Text style={styles.primaryButtonArrow}>→</Text>
             </Pressable>
 
-            {/* SIGN IN */}
-
+            {/* Sign In Button */}
             <Pressable
               style={({ pressed }) => [
-                styles.loginButton,
+                styles.secondaryButton,
                 pressed && styles.buttonPressed,
               ]}
               onPress={() => navigation.navigate("Login")}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in to your account"
             >
-              <Text style={styles.loginIcon}>
-                👔
-              </Text>
-
-              <Text style={styles.loginText}>
-                Sign In / Login
-              </Text>
+              <Text style={styles.secondaryButtonIcon}>👤</Text>
+              <Text style={styles.secondaryButtonText}>Sign In / Login</Text>
             </Pressable>
 
+            {/* Trust Footer */}
+            <Text style={styles.footerText}>
+              Aryans Buildcon • A Tradition of Trust
+            </Text>
           </View>
-
-        </View>
+        </ScrollView>
       </ImageBackground>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-
-  /* ================= SCREEN ================= */
-
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: "#17211D",
+    backgroundColor: "#0D1A14",
   },
 
-  background: {
+  backgroundImage: {
     flex: 1,
     width: "100%",
     height: "100%",
   },
 
-  /* ================= OVERLAY ================= */
-
+  /* Solid dark contrast overlay so all text stands out sharply */
   overlay: {
     ...StyleSheet.absoluteFillObject,
-
-    backgroundColor: COLORS.overlay,
+    backgroundColor: "rgba(10, 22, 16, 0.78)",
   },
 
-  /* ================= CONTENT ================= */
-
-  content: {
-    flex: 1,
-
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 25,
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
   },
 
-  /* ================= LOGO ================= */
+  /* ================= TOP SECTION ================= */
+  topSection: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
 
-  logoContainer: {
-    width: 250,
-    height: 100,
-    right: 20,
-    borderRadius: 12,
-
-    alignSelf: "center",
-
+  brandCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
     alignItems: "center",
     justifyContent: "center",
-
-    marginBottom: 1,
-   
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.22,
+    shadowRadius: 5,
+    elevation: 4,
   },
 
-  logo: {
-    width: 195,
-    height: 195,
-  },
-
-  /* ================= HERO ================= */
-
-  hero: {
-    alignItems: "center",
-
-    paddingHorizontal: 10,
-  },
-
-  /* ================= BADGE ================= */
-
-  badge: {
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    backgroundColor: COLORS.lightGreen,
-
-    borderRadius: 20,
-
+  brandCardSmall: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
+    borderRadius: 12,
+  },
 
-    marginBottom: 12,
+  logoImage: {
+    width: 170,
+    height: 62,
+  },
+
+  logoImageSmall: {
+    width: 145,
+    height: 52,
+  },
+
+  /* ================= HERO SECTION ================= */
+  heroSection: {
+    alignItems: "center",
+    marginVertical: 12,
+  },
+
+  badgePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8F5EF",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
   },
 
   badgeDot: {
     width: 7,
     height: 7,
-
     borderRadius: 4,
-
-    backgroundColor: COLORS.primary,
-
-    marginRight: 6,
-  },
-
-  badgeText: {
-    color: COLORS.primaryDark,
-
-    fontSize: 8,
-
-    fontWeight: "800",
-
-    letterSpacing: 0.7,
-  },
-
-  /* ================= TITLE ================= */
-
-  title: {
-    color: COLORS.primaryDark,
-
-    fontSize: 32,
-
-    fontWeight: "900",
-
-    textAlign: "center",
-
-    marginBottom: 9,
-    textTransform: "uppercase",
-    textShadowColor: "rgba(0,0,0,0.35)",
-    textShadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    textShadowRadius: 4,
-  },
-
-  /* ================= DESCRIPTION ================= */
-
-  description: {
-    color: "black",
-
-    fontSize: 14,
-
-    lineHeight: 21,
-
-    textAlign: "center",
-
-    fontWeight: "400",
-  },
-
-  /* ================= SPACER ================= */
-
-  spacer: {
-    flex: 1,
-  },
-
-  /* ================= BUTTON CONTAINER ================= */
-
-  buttonsContainer: {
-    width: "100%",
-  },
-
-  /* ================= GET STARTED ================= */
-
-  getStartedButton: {
-    height: 52,
-
-    backgroundColor: COLORS.primary,
-
-    borderRadius: 8,
-
-    flexDirection: "row",
-
-    justifyContent: "center",
-
-    alignItems: "center",
-
-    marginBottom: 10,
-
-    elevation: 5,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-  },
-
-  getStartedText: {
-    color: COLORS.white,
-
-    fontSize: 17,
-
-    fontWeight: "800",
-  },
-
-  arrow: {
-    color: COLORS.white,
-
-    fontSize: 20,
-
-    fontWeight: "900",
-
-    marginLeft: 8,
-  },
-
-  /* ================= LOGIN ================= */
-
-  loginButton: {
-    height: 52,
-
-    backgroundColor: "rgba(255,255,255,0.94)",
-
-    borderRadius: 8,
-
-    borderWidth: 1,
-
-    borderColor: COLORS.border,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    elevation: 3,
-  },
-
-  loginIcon: {
-    color: COLORS.primary,
-
-    fontSize: 20,
-
+    backgroundColor: COLORS.primary || "#007949",
     marginRight: 7,
   },
 
-  loginText: {
-    color: COLORS.primaryDark,
+  badgeText: {
+    color: COLORS.primaryDark || "#005C38",
+    fontSize: 10.5,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
 
-    fontSize: 17,
+  title: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+    textAlign: "center",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    textShadowColor: "rgba(0, 0, 0, 0.6)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
 
+  description: {
+    color: "#E5ECE8",
+    lineHeight: 21,
+    textAlign: "center",
+    fontWeight: "500",
+    paddingHorizontal: 8,
+    marginBottom: 14,
+    textShadowColor: "rgba(0, 0, 0, 0.4)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
+  /* Features Glassmorphism Card */
+  featuresCard: {
+    width: "100%",
+    backgroundColor: "rgba(18, 36, 27, 0.72)",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(167, 243, 208, 0.22)",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
+
+  featureIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  featureIcon: {
+    fontSize: 16,
+  },
+
+  featureTextBox: {
+    flex: 1,
+  },
+
+  featureTitle: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 1,
+  },
+
+  featureDesc: {
+    color: "#B7C8C0",
+    fontSize: 11,
+    fontWeight: "400",
+  },
+
+  featureDivider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    marginVertical: 4,
+  },
+
+  /* ================= BOTTOM SECTION ================= */
+  bottomSection: {
+    width: "100%",
+    marginTop: 14,
+  },
+
+  primaryButton: {
+    height: 52,
+    backgroundColor: COLORS.primary || "#007949",
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16.5,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
+
+  primaryButtonArrow: {
+    color: "#FFFFFF",
+    fontSize: 19,
+    fontWeight: "900",
+    marginLeft: 8,
+  },
+
+  secondaryButton: {
+    height: 50,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#DCE5E0",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  secondaryButtonIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+
+  secondaryButtonText: {
+    color: COLORS.primaryDark || "#005C38",
+    fontSize: 15.5,
     fontWeight: "700",
   },
 
-  /* ================= PRESS ================= */
-
   buttonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
+    transform: [{ scale: 0.985 }],
   },
 
+  footerText: {
+    color: "rgba(255, 255, 255, 0.65)",
+    fontSize: 11,
+    fontWeight: "500",
+    textAlign: "center",
+    marginTop: 12,
+    letterSpacing: 0.3,
+  },
 });
