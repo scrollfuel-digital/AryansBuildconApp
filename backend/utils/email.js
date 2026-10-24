@@ -1,42 +1,55 @@
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export const sendVerificationEmail = async (email, otp) => {
-    const host = process.env.SMTP_HOST?.trim();
-    const port = Number(process.env.SMTP_PORT || 465);
-    const user = process.env.SMTP_USER?.trim();
-    const pass = process.env.SMTP_PASS?.replace(/\s/g, "");
+    const apiKey = process.env.RESEND_API_KEY?.trim();
+    const from = process.env.EMAIL_FROM?.trim();
+    const replyTo = process.env.EMAIL_REPLY_TO?.trim();
 
-    if (!host || !user || !pass) {
-        throw new Error("SMTP_HOST, SMTP_USER, or SMTP_PASS is missing");
+    if (!apiKey || !from) {
+        throw new Error(
+            "RESEND_API_KEY or EMAIL_FROM is missing"
+        );
     }
 
-    const transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
-        connectionTimeout: 20000,
-        greetingTimeout: 20000,
-        socketTimeout: 30000,
+    if (!email || !otp) {
+        throw new Error("Email and OTP are required");
+    }
+
+    const safeOtp = String(otp).replace(/\D/g, "");
+
+    if (!safeOtp) {
+        throw new Error("Invalid OTP");
+    }
+
+    const resend = new Resend(apiKey);
+
+    const { data, error } = await resend.emails.send({
+        from,
+        to: [email],
+        ...(replyTo ? { replyTo } : {}),
+        subject: "Aryans Buildcon - Email Verification",
+        text: `Your verification code is ${safeOtp}. It expires in 5 minutes.`,
+        html: `
+            <div style="font-family: Arial, sans-serif;">
+                <h2 style="color: #007949;">Aryans Buildcon</h2>
+                <p>Your verification code is:</p>
+                <h1>${safeOtp}</h1>
+                <p>This code expires in 5 minutes.</p>
+            </div>
+        `,
     });
 
-    try {
-        return await transporter.sendMail({
-            from: process.env.SMTP_FROM || user,
-            to: email,
-            subject: "Aryans Buildcon - Email Verification",
-            text: `Your verification code is ${otp}. It expires in 5 minutes.`,
-            html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>Aryans Buildcon</h2>
-          <p>Your verification code is:</p>
-          <h1>${otp}</h1>
-          <p>This code expires in 5 minutes.</p>
-        </div>
-      `,
+    if (error) {
+        console.error("Resend email error:", {
+            message: error.message,
+            statusCode: error.statusCode,
         });
-    } finally {
-        transporter.close();
+
+        throw new Error("Unable to send verification email");
     }
+
+    console.log("Verification email accepted:", data?.id);
+
+    return data;
 };
