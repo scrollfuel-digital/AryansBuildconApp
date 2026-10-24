@@ -1,14 +1,43 @@
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
-import fs from "node:fs";
-import path from "node:path";
+
 import SiteVisit from "../models/SiteVisit.js";
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+export const ensureCloudinaryConfig = () => {
+    const cloud_name = (process.env.CLOUDINARY_CLOUD_NAME || "u0iaguoq").trim();
+    const api_key = (process.env.CLOUDINARY_API_KEY || "111584191873446").trim();
+    const api_secret = (process.env.CLOUDINARY_API_SECRET || "zlzlOztGVHG668UTJ6NWe4aTjZk").trim();
+
+    cloudinary.config({
+        cloud_name,
+        api_key,
+        api_secret,
+    });
+
+    return { cloud_name, api_key, api_secret };
+};
+
+ensureCloudinaryConfig();
+
+export const uploadToCloudinary = async (imageInput, folder = "site-visits") => {
+    ensureCloudinaryConfig();
+    const result = await cloudinary.uploader.upload(imageInput, {
+        folder,
+        resource_type: "image",
+        transformation: [
+            { width: 1600, height: 1600, crop: "limit" },
+        ],
+    });
+
+    if (!result.secure_url || !result.public_id) {
+        throw new Error("Cloudinary did not return a valid image URL");
+    }
+
+    return {
+        secure_url: result.secure_url,
+        public_id: result.public_id,
+    };
+};
 
 export const uploadMiddleware = multer({
     storage: multer.memoryStorage(),
@@ -23,64 +52,35 @@ export const uploadMiddleware = multer({
 
 export const uploadSitePhoto = async (req, res) => {
     try {
-        if (!req.file)
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Photo is required in form field 'photo'",
-                });
-
-        // If Cloudinary is not configured, save locally to disk
-        if (
-            !process.env.CLOUDINARY_CLOUD_NAME ||
-            !process.env.CLOUDINARY_API_KEY ||
-            !process.env.CLOUDINARY_API_SECRET
-        ) {
-            const uploadsDir = path.join(process.cwd(), "uploads");
-            if (!fs.existsSync(uploadsDir)) {
-                fs.mkdirSync(uploadsDir, { recursive: true });
-            }
-            const ext = req.file.mimetype.split("/")[1] || "jpg";
-            const filename = `site_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
-            const filePath = path.join(uploadsDir, filename);
-            fs.writeFileSync(filePath, req.file.buffer);
-
-            const host = req.get("host") || "10.237.180.98:8080";
-            const protocol = req.protocol || "http";
-            const photoUrl = `${protocol}://${host}/uploads/${filename}`;
-
-            return res.status(201).json({
-                success: true,
-                message: "Photo saved successfully",
-                photoUrl,
-                publicId: `local_${filename}`,
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Photo is required in form field 'photo'",
             });
         }
+
         const image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-        const result = await cloudinary.uploader.upload(image, {
-            folder: "site-visits",
-            resource_type: "image",
-            transformation: [{ width: 1600, height: 1600, crop: "limit" }],
+        const result = await uploadToCloudinary(image, "site-visits");
+
+        return res.status(201).json({
+            success: true,
+            message: "Photo uploaded successfully",
+            photoUrl: result.secure_url,
+            publicId: result.public_id,
         });
-        return res
-            .status(201)
-            .json({
-                success: true,
-                message: "Photo uploaded successfully",
-                photoUrl: result.secure_url,
-                publicId: result.public_id,
-            });
     } catch (error) {
-        console.error("Upload site photo error:", error);
-        return res
-            .status(500)
-            .json({ success: false, message: "Failed to upload photo" });
+        console.error("Upload site photo error:", error.message || error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to upload photo",
+        });
     }
 };
 
 export const deleteSitePhoto = async (req, res) => {
     try {
+        ensureCloudinaryConfig();
         const { id } = req.params;
         if (!id || !id.startsWith("site-visits/"))
             return res

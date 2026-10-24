@@ -1,5 +1,7 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config({ path: "./config.env" });
+
+import express from "express";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes.js";
@@ -13,14 +15,11 @@ import locationRoutes from "./routes/location.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import connectDB from "./database/conn.js";
 
-dotenv.config({ path: "./config.env" });
-
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.use("/api/auth", authRoutes);

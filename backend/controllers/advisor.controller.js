@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import SiteVisit from "../models/SiteVisit.js";
+import { uploadToCloudinary } from "./upload.controller.js";
 
 const getUserId = (req) => req.user?._id || req.user?.id;
 
@@ -93,6 +94,16 @@ export const createAdvisor = async (req, res) => {
         const advisorCount = await User.countDocuments({ role: "advisor" });
         const employeeId = `ADV${String(advisorCount + 1).padStart(3, "0")}`;
 
+        let finalAdvisorPhotoUrl = photoUrl.trim();
+        if (finalAdvisorPhotoUrl.startsWith("data:image/")) {
+            try {
+                const uploadResult = await uploadToCloudinary(finalAdvisorPhotoUrl, "advisors");
+                finalAdvisorPhotoUrl = uploadResult.secure_url;
+            } catch (uploadErr) {
+                console.error("Failed to upload advisor photo to Cloudinary:", uploadErr.message);
+            }
+        }
+
         const advisor = await User.create({
             employeeId,
             name: name.trim(),
@@ -101,7 +112,7 @@ export const createAdvisor = async (req, res) => {
             password: hashedPassword,
             role: "advisor",
             status: "active",
-            photoUrl: photoUrl.trim(),
+            photoUrl: finalAdvisorPhotoUrl,
         });
 
         return res.status(201).json({

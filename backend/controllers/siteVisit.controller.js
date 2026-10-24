@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import SiteVisit from "../models/SiteVisit.js";
 import Project from "../models/Project.js";
 import User from "../models/User.js";
+import { uploadToCloudinary } from "./upload.controller.js";
 
 const currentUserId = (req) => req.user?._id || req.user?.id;
 
@@ -99,6 +100,21 @@ export const createSiteVisit = async (req, res) => {
       }
     }
 
+    let finalPhotoUrl = photoUrl.trim();
+    let finalPhotoPublicId =
+      typeof photoPublicId === "string" ? photoPublicId.trim() : "";
+
+    // If photo is passed as a base64 data URI, upload directly to Cloudinary
+    if (finalPhotoUrl.startsWith("data:image/")) {
+      try {
+        const uploadResult = await uploadToCloudinary(finalPhotoUrl, "site-visits");
+        finalPhotoUrl = uploadResult.secure_url;
+        finalPhotoPublicId = uploadResult.public_id;
+      } catch (uploadErr) {
+        console.error("Failed to upload base64 photo to Cloudinary:", uploadErr.message);
+      }
+    }
+
     // Create site visit
     const visit = await SiteVisit.create({
       customerName: customerName.trim(),
@@ -110,9 +126,8 @@ export const createSiteVisit = async (req, res) => {
       latitude: lat,
       longitude: lng,
       locationAddress: typeof locationAddress === "string" ? locationAddress.trim() : "",
-      photoUrl: photoUrl.trim(),
-      photoPublicId:
-        typeof photoPublicId === "string" ? photoPublicId.trim() : "",
+      photoUrl: finalPhotoUrl,
+      photoPublicId: finalPhotoPublicId,
       notes: typeof notes === "string" ? notes.trim() : "",
       visitedAt: new Date(),
     });
